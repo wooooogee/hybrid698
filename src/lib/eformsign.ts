@@ -194,18 +194,17 @@ export async function createEformsignDocument(data: any) {
                 },
                 recipients: [
                     {
-                        // 템플릿 워크플로우 '열람자 1' 단계 수신자 지정
-                        // step_type "07" = 열람자/배포 단계
-                        step_type: "07",
+                        step_type: "07", // Distribution type
                         name: data.name,
-                        use_mail: true,
                         use_sms: true,
+                        use_mail: true,
                         send_notification: true,
+                        notification_type: "01",
                         sms: {
                             country_code: "+82",
-                            phone_number: cleanPhone,
-                        },
-                    },
+                            phone_number: cleanPhone
+                        }
+                    }
                 ],
                 fields: fields,
                 select_group_name: ""
