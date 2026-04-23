@@ -172,7 +172,6 @@ export async function createEformsignDocument(data: any) {
             { id: '카드/은행명', value: data.paymentMethod === 'card' ? (data.paymentInfo?.cardCompany || '') : (data.paymentInfo?.bankName || '') },
             { id: '카드번호/계좌번호', value: data.paymentMethod === 'card' ? (data.paymentInfo?.cardNumber || '') : (data.paymentInfo?.accountNumber || '') },
             { id: '유효기간', value: (data.paymentMethod === 'card' && data.paymentInfo?.cardExpiry) ? data.paymentInfo.cardExpiry : '-' },
-            { id: '이체일', value: `${data.paymentDate}일` },
             { id: '상품내용고지', value: data.agreement?.product_notice ? '1' : '' },
             { id: '개인정보수집', value: data.agreement?.privacy ? '1' : '' },
             { id: '제3자제공', value: data.agreement?.third_party ? '1' : '' },
@@ -189,13 +188,19 @@ export async function createEformsignDocument(data: any) {
         const payload: any = {
             document: {
                 comment: "가입 신청이 완료되어 서명된 신청서를 보내드립니다.",
+                notification: {
+                    use_mail: true,
+                    use_sms: true
+                },
                 recipients: [
                     {
                         // 템플릿 워크플로우 '열람자 1' 단계 수신자 지정
                         // step_type "07" = 열람자/배포 단계
                         step_type: "07",
                         name: data.name,
+                        use_mail: true,
                         use_sms: true,
+                        send_notification: true,
                         sms: {
                             country_code: "+82",
                             phone_number: cleanPhone,
@@ -203,6 +208,7 @@ export async function createEformsignDocument(data: any) {
                     },
                 ],
                 fields: fields,
+                select_group_name: ""
             }
         };
 
@@ -217,10 +223,16 @@ export async function createEformsignDocument(data: any) {
 
         if (!response.ok) {
             const errorBody = await response.text();
+            console.error('--- e-FormSign API Error State ---');
+            console.error('Status:', response.status);
+            console.error('Response Body:', errorBody);
+            console.error('Sent Payload Fields:', JSON.stringify(fields, null, 2));
             throw new Error(`e-FormSign Doc Error (${response.status}): ${errorBody}`);
         }
 
         const result = await response.json();
+        console.log('e-FormSign Document Created Successfully:', result.document?.document_id);
+        
         return {
             success: true,
             document_id: result.document?.document_id || 'unknown',
