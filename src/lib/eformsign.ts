@@ -5,7 +5,7 @@ const EFORMSIGN_API_KEY = process.env.EFORMSIGN_API_KEY || '';
 export const EFORMSIGN_COMPANY_ID = process.env.EFORMSIGN_COMPANY_ID || '';
 const EFORMSIGN_MEMBER_ID = process.env.EFORMSIGN_MEMBER_ID || '';
 const EFORMSIGN_TEMPLATE_ID_BETTER = process.env.EFORMSIGN_TEMPLATE_ID_BETTER || '';
-const EFORMSIGN_TEMPLATE_ID_HEALTH = process.env.EFORMSIGN_TEMPLATE_ID_HEALTH || '';
+const EFORMSIGN_TEMPLATE_ID_Hybrid698 = process.env.EFORMSIGN_TEMPLATE_ID_Hybrid698 || '';
 
 /**
  * Get Access Token using the specific 'Bearer' Header pattern found in Postman.
@@ -140,7 +140,7 @@ export async function createEformsignDocument(data: any) {
         // Select the appropriate template ID based on the product
         const templateId = data.product === '더좋은크루즈'
             ? EFORMSIGN_TEMPLATE_ID_BETTER
-            : EFORMSIGN_TEMPLATE_ID_HEALTH;
+            : EFORMSIGN_TEMPLATE_ID_Hybrid698;
 
         console.log(`Creating e-FormSign document for ${data.product} using template ${templateId}`);
 
