@@ -1,6 +1,6 @@
 'use server';
 
-import { createEformsignDocument, sendViewerNotification } from '@/lib/eformsign';
+import { createEformsignDocument } from '@/lib/eformsign';
 
 export async function registerAction(data: any) {
   try {
@@ -15,24 +15,10 @@ export async function registerAction(data: any) {
       };
     }
 
+    // 열람 알림(카카오톡/SMS)은 이폼사인 템플릿 '열람자 1' 단계에서 자동 발송됨
     console.log('문서 생성 완료, document_id:', eformResult.document_id);
-
-    // 문서 생성 직후 계약자(열람자)에게 이폼사인 자체 열람 알림 발송
-    // 웹훅(doc_complete)을 기다리지 않고 즉시 발송 — 템플릿 배포 단계 유무와 무관하게 동작
-    if (eformResult.document_id && eformResult.document_id !== 'unknown') {
-      const notifyResult = await sendViewerNotification(
-        eformResult.document_id,
-        data.name,
-        (data.phone || '').replace(/\D/g, '')
-      );
-      if (notifyResult.success) {
-        console.log('열람 알림 발송 완료 →', data.name, data.phone);
-      } else {
-        console.error('열람 알림 발송 실패:', notifyResult.error);
-      }
-    }
-
     console.log('--- Register Action Completed ---');
+
     return {
       success: true,
       message: '가입 신청 및 전자 서명이 완료되었습니다.',

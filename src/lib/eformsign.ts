@@ -71,14 +71,9 @@ export async function getDocumentDetail(documentId: string): Promise<any> {
 }
 
 /**
- * eformsign 자체 열람 알림톡/SMS 발송.
- * doc_complete 웹훅 수신 후 계약자(열람자)에게 이폼사인이 직접 발송.
- * step_type "07" = 배포(열람자) 단계로 수신자를 추가하여 알림 발송.
- */
-/**
- * eformsign 자체 열람 알림톡/SMS 발송.
- * 문서 생성 직후 또는 doc_complete 웹훅 수신 시 호출.
- * outsides API로 외부자(계약자) 열람 링크를 생성하고 이폼사인이 알림 발송.
+ * eformsign 자체 열람 알림톡/SMS 발송 (outsides API).
+ * 웹훅(doc_complete) 수신 후 백업 경로로 호출.
+ * 정상 경로: createEformsignDocument의 recipients(step_type 07)로 이폼사인이 자동 발송.
  */
 export async function sendViewerNotification(
     documentId: string,
@@ -190,35 +185,26 @@ export async function createEformsignDocument(data: any) {
             { id: '영업자연락처', value: data.salesPhone || '' }
         ];
 
+        // title 생략 → Error 400010 방지 (템플릿 제목 규칙 사용)
         const payload: any = {
             document: {
                 comment: "가입 신청이 완료되어 서명된 신청서를 보내드립니다.",
-                notification: {
-                    use_mail: true,
-                    use_sms: true
-                },
                 recipients: [
                     {
-                        step_type: "07", // Distribution type
+                        // 템플릿 워크플로우 '열람자 1' 단계 수신자 지정
+                        // step_type "07" = 열람자/배포 단계
+                        step_type: "07",
                         name: data.name,
                         use_sms: true,
-                        use_mail: true,
-                        send_notification: true,
-                        notification_type: "01", // Standard notification triggered by API
                         sms: {
                             country_code: "+82",
                             phone_number: cleanPhone,
-                            sms_number: cleanPhone // Redundant field for compatibility
-                        }
-                    }
+                        },
+                    },
                 ],
                 fields: fields,
-                select_group_name: ""
             }
         };
-
-        // We omit document_name to avoid Error 400010 (Title cannot be changed).
-        // e-FormSign will use the default title rule configured in the template settings.
 
         const response = await fetch(`${EFORMSIGN_KR_SERVER}/v2.0/api/documents?template_id=${templateId}`, {
             method: 'POST',
