@@ -221,11 +221,40 @@ export async function createEformsignDocument(data: any) {
         }
 
         const result = await response.json();
-        console.log('e-FormSign Document Created Successfully:', result.document?.document_id);
+        const documentId = result.document?.document_id || result.document_id;
+        
+        if (!documentId) {
+            throw new Error('이폼사인 문서 생성에 실패했습니다 (document_id 누락)');
+        }
+
+        console.log('e-FormSign Document Created Successfully:', documentId);
+
+        // [추가] 문서 생성 후 즉시 다음 단계(열람자)로 전송(제출) 처리
+        const actionResponse = await fetch(`${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}/actions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                action: {
+                    action_type: "submit", // 시작 단계에서 제출 처리하여 다음 단계로 이동
+                    comment: "가입 신청 완료로 인한 자동 제출"
+                }
+            })
+        });
+
+        if (!actionResponse.ok) {
+            const actionError = await actionResponse.text();
+            console.error('e-FormSign Action Execution Failed:', actionError);
+            // 액션 실패는 문서 생성 자체와 별도로 로깅만 하고 성공 리턴 (혹은 업무 규칙에 따라 에러 처리)
+        } else {
+            console.log('e-FormSign Document Progressed to Next Step Successfully');
+        }
         
         return {
             success: true,
-            document_id: result.document?.document_id || 'unknown',
+            document_id: documentId,
             message: '전자 서명이 성공적으로 전송되었습니다.'
         };
     } catch (error: any) {
