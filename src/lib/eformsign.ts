@@ -185,26 +185,20 @@ export async function createEformsignDocument(data: any) {
         const payload: any = {
             document: {
                 comment: "가입 신청이 완료되어 서명된 신청서를 보내드립니다.",
-                notification: {
-                    use_mail: true,
-                    use_sms: true
-                },
                 recipients: [
                     {
                         step_type: "07",
                         name: data.name,
                         use_sms: true,
-                        use_mail: true,
+                        use_mail: false,
                         send_notification: true,
                         sms: {
                             country_code: "+82",
-                            phone_number: cleanPhone,
-                            sms_number: cleanPhone
+                            phone_number: cleanPhone
                         }
                     }
                 ],
-                fields: fields,
-                select_group_name: ""
+                fields: fields
             }
         };
 
