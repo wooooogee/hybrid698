@@ -172,6 +172,7 @@ export async function createEformsignDocument(data: any) {
             { id: '카드/은행명', value: data.paymentMethod === 'card' ? (data.paymentInfo?.cardCompany || '') : (data.paymentInfo?.bankName || '') },
             { id: '카드번호/계좌번호', value: data.paymentMethod === 'card' ? (data.paymentInfo?.cardNumber || '') : (data.paymentInfo?.accountNumber || '') },
             { id: '유효기간', value: (data.paymentMethod === 'card' && data.paymentInfo?.cardExpiry) ? data.paymentInfo.cardExpiry : '-' },
+            { id: '이체일', value: `${data.paymentDate || '05'}일` },
             { id: '상품내용고지', value: data.agreement?.product_notice ? '1' : '' },
             { id: '개인정보수집', value: data.agreement?.privacy ? '1' : '' },
             { id: '제3자제공', value: data.agreement?.third_party ? '1' : '' },
