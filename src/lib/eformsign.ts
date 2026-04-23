@@ -146,8 +146,8 @@ export async function createEformsignDocument(data: any) {
 
         // Map UI data to the specific Field IDs
         const fields = [
-            { id: '상품명', value: data.productName || data.product },
-            { id: '제품명', value: data.productName || data.product },
+            { id: '상품명', value: data.product },
+            { id: '제품명', value: data.productName },
             { id: '구좌수', value: `${data.productCount}구좌` },
             { id: '계약자이름', value: data.name },
             { id: '주민번호', value: data.residentId },

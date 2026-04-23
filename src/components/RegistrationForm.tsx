@@ -85,8 +85,8 @@ const RegistrationForm = () => {
     address: '',
     addressDetail: '',
     residentId: '',
-    product: '하이브리드698',
-    productName: '더좋은하이브리드698',
+    product: '더좋은하이브리드698',
+    productName: '',
     productCount: '1',
     paymentPlan: 'normal',
     paymentMethod: 'card',
@@ -264,9 +264,24 @@ const RegistrationForm = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Package size={14} /> 상품명</label>
-                  <input type="text" placeholder="상품명을 입력하세요" value={formData.productName} onChange={(e) => updateFormData('productName', e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 font-bold" />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Package size={14} /> 상품명</label>
+                    <div className="w-full bg-zinc-800/30 border border-zinc-800 rounded-2xl py-4.5 px-6 text-zinc-400 font-bold">
+                      더좋은하이브리드698
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Tag size={14} /> 제품명</label>
+                    <input 
+                      type="text" 
+                      placeholder="제품명을 별도로 입력하세요 (예: LG 올레드 TV)" 
+                      value={formData.productName} 
+                      onChange={(e) => updateFormData('productName', e.target.value)} 
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 font-bold" 
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
