@@ -176,15 +176,15 @@ export async function createEformsignDocument(data: any) {
                 },
                 recipients: [
                     {
-                        step_type: "07", // Distribution type
+                        step_type: "07",
                         name: data.name,
                         use_sms: true,
                         use_mail: true,
                         send_notification: true,
-                        notification_type: "01",
                         sms: {
                             country_code: "+82",
-                            phone_number: cleanPhone
+                            phone_number: cleanPhone,
+                            sms_number: cleanPhone
                         }
                     }
                 ],
