@@ -273,7 +273,7 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white flex flex-col items-center py-12 px-4 selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-theme text-theme transition-colors duration-300 flex flex-col items-center py-12 px-4 selection:bg-indigo-500/30">
       <Script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" strategy="beforeInteractive" />
       
       <div className="w-full max-w-xl space-y-10">
@@ -299,44 +299,45 @@ const RegistrationForm = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-zinc-900/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl backdrop-blur-sm"
+              className="space-y-8 card-theme p-8 rounded-[3rem]"
             >
-              <div className="space-y-1 pb-2 border-b border-white/5">
-                <h2 className="text-xl font-black text-white italic tracking-tight">{STEPS[currentStep].title}</h2>
+              <div className="space-y-1 pb-2 border-b border-theme/10">
+                <h2 className="text-xl font-black italic tracking-tight">{STEPS[currentStep].title}</h2>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Package size={14} /> 상품명</label>
-                    <div className="w-full bg-zinc-800/30 border border-zinc-800 rounded-2xl py-4.5 px-6 text-zinc-400 font-bold">
+                    <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Package size={14} /> 상품명</label>
+                    <div className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 font-bold">
                       더좋은하이브리드698
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Tag size={14} /> 제품명</label>
+                    <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Tag size={14} /> 제품명</label>
                     <input 
                       type="text" 
                       placeholder="제품명을 별도로 입력하세요 (예: LG 올레드 TV)" 
                       value={formData.productName} 
                       onChange={(e) => updateFormData('productName', e.target.value)} 
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 font-bold" 
+                      className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none font-bold" 
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Calculator size={14} /> 수량 선택</label>
-                  <div className="flex bg-zinc-900/50 p-1.5 rounded-2xl border border-zinc-800">
+                  <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Calculator size={14} /> 수량 선택</label>
+                  <div className="flex bg-theme p-1.5 rounded-2xl border border-theme">
                     {['1', '2', '3'].map((n) => (
                       <button
                         key={n}
+                        type="button"
                         onClick={() => updateFormData('productCount', n)}
                         className={`flex-1 py-3 rounded-xl font-bold transition-all ${
                           formData.productCount === n 
-                            ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-white/5' 
-                            : 'text-zinc-600 hover:text-zinc-400'
+                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            : 'text-sub'
                         }`}
                       >
                         {n} 구좌
@@ -346,23 +347,23 @@ const RegistrationForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1">성명</label>
+                  <label className="text-xs font-bold text-sub ml-1">성명</label>
                   <div className="relative group">
-                    <User className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" size={18} />
-                    <input type="text" placeholder="실명을 입력하세요" value={formData.name} onChange={(e) => updateFormData('name', e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700" />
+                    <User className="absolute left-5 top-1/2 -translate-y-1/2 text-sub group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    <input type="text" placeholder="실명을 입력하세요" value={formData.name} onChange={(e) => updateFormData('name', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1">연락처</label>
+                  <label className="text-xs font-bold text-sub ml-1">연락처</label>
                   <div className="relative group">
-                    <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" size={18} />
+                    <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-sub group-focus-within:text-indigo-500 transition-colors" size={18} />
                     <input type="tel" placeholder="010-0000-0000" value={formData.phone} onChange={(e) => {
                       let val = e.target.value.replace(/[^0-9]/g, '');
                       if (val.length > 3 && val.length <= 7) val = val.substring(0, 3) + '-' + val.substring(3);
                       else if (val.length > 7) val = val.substring(0, 3) + '-' + val.substring(3, 7) + '-' + val.substring(7, 11);
                       updateFormData('phone', val);
-                    }} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700" />
+                    }} className="w-full bg-theme border border-theme rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none" />
                   </div>
                 </div>
 
