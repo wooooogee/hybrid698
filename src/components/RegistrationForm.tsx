@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, CheckCircle2, ArrowRight, ArrowLeft, Loader2, CreditCard, Landmark, ShieldCheck, MapPin, Search, Eraser, PenLine, Package, Calculator, Briefcase, Calendar, Tag, FileText } from 'lucide-react';
+import { User, Phone, CheckCircle2, ArrowRight, ArrowLeft, Loader2, CreditCard, Landmark, ShieldCheck, MapPin, Search, Eraser, PenLine, Package, Calculator, Briefcase, Calendar, Tag, FileText, Sun, Moon } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
 import TermsAgreement from './TermsAgreement';
 import { registerAction } from '@/app/actions';
 import Script from 'next/script';
+import { useEffect } from 'react';
 
 const DEFAULT_TERMS = [
   { 
@@ -79,7 +78,21 @@ const RegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittingMessage, setSubmittingMessage] = useState('');
   const [createdDocumentId, setCreatedDocumentId] = useState<string | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const sigCanvas = useRef<SignatureCanvas>(null);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' || 'light';
+    setTheme(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
   
   const [formData, setFormData] = useState({
     name: '',
@@ -263,6 +276,21 @@ const RegistrationForm = () => {
       <Script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" strategy="beforeInteractive" />
       
       <div className="w-full max-w-xl space-y-10">
+        <div className="flex justify-between items-center px-4">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-1">Registration System</span>
+            <div className="h-1 w-12 bg-indigo-500 rounded-full" />
+          </div>
+          <button 
+            type="button"
+            onClick={toggleTheme}
+            className="p-3 rounded-2xl bg-card transition-all hover:scale-110 active:scale-95 border border-theme shadow-sm"
+            aria-label="Toggle Theme"
+          >
+            {theme === 'light' ? <Moon size={20} className="text-zinc-600" /> : <Sun size={20} className="text-yellow-400" />}
+          </button>
+        </div>
+
         <AnimatePresence mode="wait">
           {currentStep === 0 && (
             <motion.div
@@ -338,40 +366,39 @@ const RegistrationForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><MapPin size={14} /> 주소</label>
+                  <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><MapPin size={14} /> 주소</label>
                   <div className="flex flex-col gap-3">
                     <div className="relative group">
-                      <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" size={18} />
+                      <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
                       <input 
                         type="text" 
                         placeholder="터치하여 주소를 검색하세요" 
                         value={formData.address} 
                         onClick={handleAddressSearch}
                         readOnly
-                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm cursor-pointer" 
+                        className="w-full bg-theme border border-theme rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-sm cursor-pointer" 
                       />
                     </div>
-                    <input type="text" placeholder="상세 주소를 입력하세요 (동, 호수 등)" value={formData.addressDetail} onChange={(e) => updateFormData('addressDetail', e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm" />
+                    <input type="text" placeholder="상세 주소를 입력하세요" value={formData.addressDetail} onChange={(e) => updateFormData('addressDetail', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-sm" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-zinc-400 ml-1">주민등록번호 앞6자리</label>
-                    <input type="text" placeholder="900101" maxLength={6} value={formData.residentId} onChange={(e) => updateFormData('residentId', e.target.value.replace(/[^0-9]/g, ''))} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white font-mono tracking-[0.2em] placeholder:text-zinc-700" />
+                    <label className="text-xs font-bold text-sub ml-1">주민번호 앞6자리</label>
+                    <input type="text" placeholder="900101" maxLength={6} value={formData.residentId} onChange={(e) => updateFormData('residentId', e.target.value.replace(/[^0-9]/g, ''))} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none font-mono tracking-[0.2em]" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-zinc-400 ml-1">성별</label>
-                    <div className="flex bg-zinc-900/50 p-1 rounded-2xl border border-zinc-800">
-                      <button onClick={() => updateFormData('gender', '남')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.gender === '남' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-600 hover:text-zinc-400'}`}>남성</button>
-                      <button onClick={() => updateFormData('gender', '여')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.gender === '여' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-600 hover:text-zinc-400'}`}>여성</button>
+                    <label className="text-xs font-bold text-sub ml-1">성별</label>
+                    <div className="flex bg-theme p-1 rounded-2xl border border-theme">
+                      <button type="button" onClick={() => updateFormData('gender', '남')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.gender === '남' ? 'bg-indigo-600 text-white shadow-sm' : 'text-sub hover:text-indigo-400'}`}>남성</button>
+                      <button type="button" onClick={() => updateFormData('gender', '여')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.gender === '여' ? 'bg-indigo-600 text-white shadow-sm' : 'text-sub hover:text-indigo-400'}`}>여성</button>
                     </div>
                   </div>
                 </div>
-
               </div>
 
-              <button onClick={handleNext} className="w-full py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 group shadow-xl shadow-indigo-500/20">다음 단계 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" /></button>
+              <button onClick={handleNext} className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-2 group shadow-xl shadow-indigo-500/20">다음 단계 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" /></button>
             </motion.div>
           )}
 
@@ -381,80 +408,63 @@ const RegistrationForm = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-zinc-900/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl backdrop-blur-sm"
+              className="space-y-8 card-theme p-8 rounded-[3rem]"
             >
-              <div className="space-y-1 pb-2 border-b border-white/5">
-                <h2 className="text-xl font-black text-white italic tracking-tight">{STEPS[currentStep].title}</h2>
+              <div className="space-y-1 pb-2 border-b border-theme/10">
+                <h2 className="text-xl font-black italic tracking-tight">{STEPS[currentStep].title}</h2>
               </div>
 
               <div className="space-y-6">
                 <div className="flex items-center justify-between px-2">
-                  <label className="text-[11px] font-black text-indigo-400 flex items-center gap-2 uppercase tracking-widest"><User size={14} /> 헬스케어대상자 ({formData.productCount}구좌)</label>
+                  <label className="text-[11px] font-black text-indigo-500 flex items-center gap-2 uppercase tracking-widest"><User size={14} /> 헬스케어대상자 ({formData.productCount}구좌)</label>
                 </div>
                 
                 {Array.from({ length: Number(formData.productCount) }).map((_, idx) => (
-                  <div key={idx} className="space-y-4 p-6 bg-zinc-900/70 rounded-[2rem] border border-white/5 relative group/target">
+                  <div key={idx} className="space-y-4 p-6 bg-theme rounded-[2.5rem] border border-theme relative group/target">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">대상자 {idx + 1}</span>
+                      <span className="text-[10px] font-black text-sub uppercase tracking-widest">대상자 {idx + 1}</span>
                       <div className="flex gap-2">
                         <button 
+                          type="button"
                           onClick={() => copyContractorToHealthcare(idx)} 
-                          className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white px-3 py-1.5 rounded-full border border-indigo-500/20 transition-all font-bold"
+                          className="text-[10px] bg-indigo-500/10 text-indigo-600 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded-full border border-indigo-500/20 transition-all font-bold"
                         >
-                          계약자와 동일
+                          본인
                         </button>
-                        {idx > 0 && (
-                          <button 
-                            onClick={() => copyPreviousHealthcareTarget(idx)} 
-                            className="text-[10px] bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white px-3 py-1.5 rounded-full border border-purple-500/20 transition-all font-bold"
-                          >
-                            위 대상자와 동일
-                          </button>
-                        )}
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-zinc-500 ml-1">관계</label>
-                        <input type="text" placeholder="본인, 배우자 등" value={formData.healthcareTargets[idx].relation} onChange={(e) => updateHealthcareTarget(idx, 'relation', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 outline-none text-white focus:border-indigo-500 text-sm" />
+                        <label className="text-[10px] font-bold text-sub ml-1">관계</label>
+                        <input type="text" placeholder="본인, 배우자 등" value={formData.healthcareTargets[idx].relation} onChange={(e) => updateHealthcareTarget(idx, 'relation', e.target.value)} className="w-full bg-theme border border-theme rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-sm" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-zinc-500 ml-1">성명</label>
-                        <input type="text" placeholder="성함" value={formData.healthcareTargets[idx].name} onChange={(e) => updateHealthcareTarget(idx, 'name', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 outline-none text-white focus:border-indigo-500 text-sm" />
+                        <label className="text-[10px] font-bold text-sub ml-1">성명</label>
+                        <input type="text" placeholder="성함" value={formData.healthcareTargets[idx].name} onChange={(e) => updateHealthcareTarget(idx, 'name', e.target.value)} className="w-full bg-theme border border-theme rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-sm" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-zinc-500 ml-1">생년월일 (6자리)</label>
-                        <input type="text" placeholder="900101" maxLength={6} value={formData.healthcareTargets[idx].birth} onChange={(e) => updateHealthcareTarget(idx, 'birth', e.target.value.replace(/[^0-9]/g, ''))} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 outline-none text-white focus:border-indigo-500 text-sm font-mono tracking-wider" />
+                        <label className="text-[10px] font-bold text-sub ml-1">생년월일</label>
+                        <input type="text" placeholder="900101" maxLength={6} value={formData.healthcareTargets[idx].birth} onChange={(e) => updateHealthcareTarget(idx, 'birth', e.target.value.replace(/[^0-9]/g, ''))} className="w-full bg-theme border border-theme rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-sm font-mono tracking-wider" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-zinc-500 ml-1">성별</label>
-                        <div className="flex bg-zinc-900 p-0.5 rounded-xl border border-zinc-800">
-                          <button onClick={() => updateHealthcareTarget(idx, 'gender', '남')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${formData.healthcareTargets[idx].gender === '남' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-600'}`}>남성</button>
-                          <button onClick={() => updateHealthcareTarget(idx, 'gender', '여')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${formData.healthcareTargets[idx].gender === '여' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-600'}`}>여성</button>
+                        <label className="text-[10px] font-bold text-sub ml-1">성별</label>
+                        <div className="flex bg-theme p-0.5 rounded-xl border border-theme">
+                          <button type="button" onClick={() => updateHealthcareTarget(idx, 'gender', '남')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${formData.healthcareTargets[idx].gender === '남' ? 'bg-indigo-600 text-white shadow-sm' : 'text-sub'}`}>남</button>
+                          <button type="button" onClick={() => updateHealthcareTarget(idx, 'gender', '여')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${formData.healthcareTargets[idx].gender === '여' ? 'bg-indigo-600 text-white shadow-sm' : 'text-sub'}`}>여</button>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-500 ml-1">연락처</label>
-                      <input type="tel" placeholder="010-0000-0000" value={formData.healthcareTargets[idx].phone} onChange={(e) => {
-                        let val = e.target.value.replace(/[^0-9]/g, '');
-                        if (val.length > 3 && val.length <= 7) val = val.substring(0, 3) + '-' + val.substring(3);
-                        else if (val.length > 7) val = val.substring(0, 3) + '-' + val.substring(3, 7) + '-' + val.substring(7, 11);
-                        updateHealthcareTarget(idx, 'phone', val);
-                      }} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 outline-none text-white focus:border-indigo-500 text-sm" />
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button onClick={handleBack} className="flex-1 py-5 bg-zinc-800 text-zinc-300 rounded-2xl font-bold">이전</button>
-                <button onClick={handleNext} className="flex-[2] py-5 bg-white text-black rounded-2xl font-black">상품 정보 확인 단계</button>
+                <button onClick={handleBack} className="flex-1 py-5 bg-card text-sub rounded-2xl font-bold border border-theme">이전</button>
+                <button onClick={handleNext} className="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black">다음 단계</button>
               </div>
             </motion.div>
           )}
@@ -465,48 +475,45 @@ const RegistrationForm = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-zinc-900/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl backdrop-blur-sm"
+              className="space-y-8 card-theme p-8 rounded-[3rem]"
             >
-              <div className="space-y-1 pb-2 border-b border-white/5">
-                <h2 className="text-xl font-black text-white italic tracking-tight">{STEPS[currentStep].title}</h2>
+              <div className="space-y-1 pb-2 border-b border-theme/10">
+                <h2 className="text-xl font-black italic tracking-tight">{STEPS[currentStep].title}</h2>
               </div>
 
-              <div className="bg-zinc-900 border border-white/5 p-8 rounded-[2rem] space-y-6">
+              <div className="bg-theme border border-theme p-8 rounded-[2rem] space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">Selected Product</p>
+                    <p className="text-[10px] text-indigo-500 font-black uppercase tracking-widest">Selected Product</p>
                     <h3 className="text-xl font-black italic">{formData.productName} ({formData.productCount}구좌)</h3>
                   </div>
-                  <div className="bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20 font-bold text-indigo-400">
+                  <div className="bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20 font-bold text-indigo-500">
                     비정기납입형
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-4 bg-zinc-800/50 rounded-2xl border border-white/5">
-                    <span className="text-zinc-400 text-xs font-bold">1~60회차 (가전+상조)</span>
-                    <span className="text-white font-black">
+                  <div className="flex justify-between items-center p-4 bg-card rounded-2xl border border-theme">
+                    <span className="text-sub text-xs font-bold">1~60회차 (가전+상조)</span>
+                    <span className="font-black">
                       {(35000 * Number(formData.productCount)).toLocaleString()}원
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-zinc-800/50 rounded-2xl border border-white/5">
-                    <span className="text-zinc-400 text-xs font-bold">61~240회차 (상조)</span>
-                    <span className="text-white font-black text-indigo-400">
+                  <div className="flex justify-between items-center p-4 bg-card rounded-2xl border border-theme">
+                    <span className="text-sub text-xs font-bold">61~240회차 (상조)</span>
+                    <span className="font-black text-indigo-500">
                       {(16000 * Number(formData.productCount)).toLocaleString()}원
                     </span>
                   </div>
-                  <div className="flex justify-center items-center py-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                    <span className="text-indigo-300 font-black text-sm italic">만기 시 100% 환급 보장</span>
+                  <div className="flex justify-center items-center py-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/10">
+                    <span className="text-indigo-500 font-black text-sm italic">만기 시 100% 환급 보장</span>
                   </div>
-                  <p className="text-[10px] text-zinc-600 text-right px-2">
-                    * VAT 포함 / 가입 구좌수에 따른 합계 금액
-                  </p>
                 </div>
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button onClick={handleBack} className="flex-1 py-5 bg-zinc-800 text-zinc-300 rounded-2xl font-bold">이전</button>
-                <button onClick={handleNext} className="flex-[2] py-5 bg-white text-black rounded-2xl font-black">결제 정보 입력 단계</button>
+                <button onClick={handleBack} className="flex-1 py-5 bg-card text-sub rounded-2xl font-bold border border-theme">이전</button>
+                <button onClick={handleNext} className="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black">다음 단계</button>
               </div>
             </motion.div>
           )}
@@ -517,27 +524,27 @@ const RegistrationForm = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-zinc-900/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl backdrop-blur-sm"
+              className="space-y-8 card-theme p-8 rounded-[3rem]"
             >
-              <div className="space-y-1 pb-2 border-b border-white/5">
-                <h2 className="text-xl font-black text-white italic tracking-tight">{STEPS[currentStep].title}</h2>
+              <div className="space-y-1 pb-2 border-b border-theme/10">
+                <h2 className="text-xl font-black italic tracking-tight">{STEPS[currentStep].title}</h2>
               </div>
 
-              <div className="flex bg-zinc-900/50 p-1 rounded-2xl border border-zinc-800">
-                <button onClick={() => updateFormData('paymentMethod', 'card')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.paymentMethod === 'card' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-600 hover:text-zinc-400'}`}>카드 결제</button>
-                <button onClick={() => updateFormData('paymentMethod', 'bank')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.paymentMethod === 'bank' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-600 hover:text-zinc-400'}`}>계좌 이체(CMS)</button>
+              <div className="flex bg-theme p-1 rounded-2xl border border-theme">
+                <button type="button" onClick={() => updateFormData('paymentMethod', 'card')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.paymentMethod === 'card' ? 'bg-indigo-600 text-white shadow-sm' : 'text-sub'}`}>카드 결제</button>
+                <button type="button" onClick={() => updateFormData('paymentMethod', 'bank')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.paymentMethod === 'bank' ? 'bg-indigo-600 text-white shadow-sm' : 'text-sub'}`}>계좌 이체</button>
               </div>
 
               <div className="space-y-4">
                 {formData.paymentMethod === 'card' ? (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><CreditCard size={14} /> 카드사</label>
-                      <input type="text" placeholder="예: 현대카드" value={formData.paymentInfo.cardCompany} onChange={(e) => updatePaymentInfo('cardCompany', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-800" />
+                      <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><CreditCard size={14} /> 카드사</label>
+                      <input type="text" placeholder="예: 현대카드" value={formData.paymentInfo.cardCompany} onChange={(e) => updatePaymentInfo('cardCompany', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-zinc-400 ml-1">카드번호</label>
+                        <label className="text-xs font-bold text-sub ml-1">카드번호</label>
                         <input 
                           type="text" 
                           placeholder="0000-0000-0000-0000" 
@@ -552,11 +559,11 @@ const RegistrationForm = () => {
                             }
                             updatePaymentInfo('cardNumber', formatted);
                           }} 
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-4 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-800 font-mono text-sm sm:text-base tracking-tighter sm:tracking-normal" 
+                          className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-4 focus:border-indigo-500 outline-none font-mono text-sm sm:text-base tracking-tighter sm:tracking-normal" 
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Calendar size={14} /> 유효기간</label>
+                        <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Calendar size={14} /> 유효기간</label>
                         <input 
                           type="text" 
                           placeholder="MM/YY" 
@@ -567,7 +574,7 @@ const RegistrationForm = () => {
                             if (val.length > 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
                             updatePaymentInfo('cardExpiry', val);
                           }} 
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-800" 
+                          className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none" 
                         />
                       </div>
                     </div>
@@ -575,18 +582,18 @@ const RegistrationForm = () => {
                 ) : (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Landmark size={14} /> 은행명</label>
-                      <input type="text" placeholder="예: 국민은행" value={formData.paymentInfo.bankName} onChange={(e) => updatePaymentInfo('bankName', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-800" />
+                      <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Landmark size={14} /> 은행명</label>
+                      <input type="text" placeholder="예: 국민은행" value={formData.paymentInfo.bankName} onChange={(e) => updatePaymentInfo('bankName', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-zinc-400 ml-1">계좌번호</label>
-                      <input type="text" placeholder="'-' 없이 숫자만" value={formData.paymentInfo.accountNumber} onChange={(e) => updatePaymentInfo('accountNumber', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-800" />
+                      <label className="text-xs font-bold text-sub ml-1">계좌번호</label>
+                      <input type="text" placeholder="'-' 없이 숫자만" value={formData.paymentInfo.accountNumber} onChange={(e) => updatePaymentInfo('accountNumber', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none" />
                     </div>
                   </div>
                 )}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1">매월 결제일</label>
-                  <select value={formData.paymentDate} onChange={(e) => updateFormData('paymentDate', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white appearance-none">
+                  <label className="text-xs font-bold text-sub ml-1">매월 결제일</label>
+                  <select value={formData.paymentDate} onChange={(e) => updateFormData('paymentDate', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none appearance-none">
                     <option value="5">매월 5일</option>
                     <option value="15">매월 15일</option>
                     <option value="25">매월 25일</option>
@@ -595,8 +602,8 @@ const RegistrationForm = () => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button onClick={handleBack} className="flex-1 py-5 bg-zinc-800 text-zinc-300 rounded-2xl font-bold">이전</button>
-                <button onClick={handleNext} className="flex-[2] py-5 bg-white text-black rounded-2xl font-black">약관 동의 단계</button>
+                <button onClick={handleBack} className="flex-1 py-5 bg-card text-sub rounded-2xl font-bold border border-theme">이전</button>
+                <button onClick={handleNext} className="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black">다음 단계</button>
               </div>
             </motion.div>
           )}
@@ -607,19 +614,19 @@ const RegistrationForm = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-zinc-900/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl backdrop-blur-sm"
+              className="space-y-8 card-theme p-8 rounded-[3rem]"
             >
-              <div className="space-y-1 pb-2 border-b border-white/5">
-                <h2 className="text-xl font-black text-white italic tracking-tight">{STEPS[currentStep].title}</h2>
+              <div className="space-y-1 pb-2 border-b border-theme/10">
+                <h2 className="text-xl font-black italic tracking-tight">{STEPS[currentStep].title}</h2>
               </div>
 
-              <div className="bg-zinc-900/50 border border-white/5 rounded-[2rem] overflow-hidden max-h-[350px] overflow-y-auto px-4 shadow-inner">
+              <div className="bg-theme border border-theme rounded-[2.5rem] overflow-hidden max-h-[350px] overflow-y-auto px-4 shadow-inner">
                 <TermsAgreement terms={DEFAULT_TERMS} onAgreementChange={(agreement) => updateFormData('agreement', agreement)} />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button onClick={handleBack} className="flex-1 py-5 bg-zinc-800 text-zinc-300 rounded-2xl font-bold">이전</button>
-                <button onClick={handleNext} className="flex-[2] py-5 bg-white text-black rounded-2xl font-black">전자 서명 단계</button>
+                <button onClick={handleBack} className="flex-1 py-5 bg-card text-sub rounded-2xl font-bold border border-theme">이전</button>
+                <button onClick={handleNext} className="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black">다음 단계</button>
               </div>
             </motion.div>
           )}
@@ -630,23 +637,23 @@ const RegistrationForm = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-zinc-900/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl backdrop-blur-sm"
+              className="space-y-8 card-theme p-8 rounded-[3rem]"
             >
-              <div className="space-y-1 pb-2 border-b border-white/5">
-                <h2 className="text-xl font-black text-white italic tracking-tight">{STEPS[currentStep].title}</h2>
+              <div className="space-y-1 pb-2 border-b border-theme/10">
+                <h2 className="text-xl font-black italic tracking-tight">{STEPS[currentStep].title}</h2>
               </div>
 
-              <div className="bg-white rounded-3xl overflow-hidden border-4 border-zinc-800 shadow-2xl">
+              <div className="bg-white rounded-3xl overflow-hidden border-4 border-theme shadow-2xl">
                 <SignatureCanvas ref={sigCanvas} penColor="black" canvasProps={{ className: "signature-canvas w-full h-64" }} />
               </div>
               <div className="flex justify-between items-center px-2">
-                <button onClick={clearSignature} className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-indigo-400 transition-colors"><Eraser size={14} /> 서명 초기화</button>
-                <div className="text-[10px] text-zinc-600 font-black uppercase tracking-widest flex items-center gap-2"><PenLine size={12} className="text-indigo-500" /> Secure Input Active</div>
+                <button onClick={clearSignature} className="flex items-center gap-2 text-xs font-bold text-sub hover:text-indigo-500 transition-colors"><Eraser size={14} /> 서명 초기화</button>
+                <div className="text-[10px] text-zinc-400 font-black uppercase tracking-widest flex items-center gap-2"><PenLine size={12} className="text-indigo-500" /> Secure Input Active</div>
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button onClick={handleBack} className="flex-1 py-5 bg-zinc-800 text-zinc-300 rounded-2xl font-bold">이전</button>
-                <button onClick={handleNext} className="flex-[2] py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-500/20">서명 완료</button>
+                <button onClick={handleBack} className="flex-1 py-5 bg-card text-sub rounded-2xl font-bold border border-theme">이전</button>
+                <button onClick={handleNext} className="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black">서명 완료</button>
               </div>
             </motion.div>
           )}
@@ -657,39 +664,39 @@ const RegistrationForm = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8 bg-zinc-900/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl backdrop-blur-sm"
+              className="space-y-8 card-theme p-8 rounded-[3rem]"
             >
-              <div className="space-y-1 pb-2 border-b border-white/5">
-                <h2 className="text-xl font-black text-white italic tracking-tight">{STEPS[currentStep].title}</h2>
+              <div className="space-y-1 pb-2 border-b border-theme/10">
+                <h2 className="text-xl font-black italic tracking-tight">{STEPS[currentStep].title}</h2>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><Briefcase size={14} /> 소속</label>
-                  <input type="text" placeholder="영업사원의 소속을 입력하세요" value={formData.salesAffiliation} onChange={(e) => updateFormData('salesAffiliation', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-8 outline-none text-white focus:border-indigo-500 placeholder:text-zinc-800" />
+                  <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Briefcase size={14} /> 소속</label>
+                  <input type="text" placeholder="영업사원의 소속을 입력하세요" value={formData.salesAffiliation} onChange={(e) => updateFormData('salesAffiliation', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-8 outline-none focus:border-indigo-500" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1">사원 성함</label>
-                  <input type="text" placeholder="성명을 입력하세요" value={formData.salesName} onChange={(e) => updateFormData('salesName', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-8 outline-none text-white focus:border-indigo-500 placeholder:text-zinc-800" />
+                  <label className="text-xs font-bold text-sub ml-1">사원 성함</label>
+                  <input type="text" placeholder="성명을 입력하세요" value={formData.salesName} onChange={(e) => updateFormData('salesName', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-8 outline-none focus:border-indigo-500" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1">사원 연락처 (선택)</label>
+                  <label className="text-xs font-bold text-sub ml-1">사원 연락처 (선택)</label>
                   <input type="tel" placeholder="010-0000-0000" value={formData.salesPhone} onChange={(e) => {
                     let val = e.target.value.replace(/[^0-9]/g, '');
                     if (val.length > 3 && val.length <= 7) val = val.substring(0, 3) + '-' + val.substring(3);
                     else if (val.length > 7) val = val.substring(0, 3) + '-' + val.substring(3, 7) + '-' + val.substring(7, 11);
                     updateFormData('salesPhone', val);
-                  }} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4.5 px-8 outline-none text-white focus:border-indigo-500 placeholder:text-zinc-800" />
+                  }} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-8 outline-none focus:border-indigo-500" />
                 </div>
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button onClick={handleBack} className="flex-1 py-5 bg-zinc-800 text-zinc-300 rounded-2xl font-bold">이전</button>
-                <button onClick={handleNext} disabled={isSubmitting} className="flex-[2] py-5 bg-white text-black disabled:bg-zinc-800 rounded-2xl font-black flex flex-col items-center justify-center shadow-xl">
+                <button onClick={handleBack} className="flex-1 py-5 bg-card text-sub rounded-2xl font-bold border border-theme">이전</button>
+                <button onClick={handleNext} disabled={isSubmitting} className="flex-[2] py-5 bg-indigo-600 text-white disabled:bg-zinc-300 rounded-2xl font-black flex flex-col items-center justify-center">
                   {isSubmitting ? (
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="animate-spin" size={24} />
-                      <span className="text-[10px] font-bold text-zinc-500 animate-pulse">{submittingMessage}</span>
+                      <span className="text-[10px] font-bold text-white/60 animate-pulse">{submittingMessage}</span>
                     </div>
                   ) : '최종 신청하기'}
                 </button>
@@ -702,13 +709,13 @@ const RegistrationForm = () => {
               key="step-complete"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-gradient-to-br from-indigo-600 to-purple-700 p-16 rounded-[4rem] text-center space-y-8 shadow-[0_40px_100px_rgba(79,70,229,0.3)] relative overflow-hidden"
+              className="bg-indigo-600 p-16 rounded-[4rem] text-center space-y-8 shadow-2xl relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full translate-x-10 -translate-y-10" />
               <div className="inline-flex w-24 h-24 bg-white/20 rounded-[2.5rem] items-center justify-center mb-2 animate-bounce"><CheckCircle2 className="text-white" size={48} /></div>
               <div className="space-y-4">
-                <h2 className="text-3xl font-black text-white italic tracking-tighter leading-tight">회원가입신청서 작성완료</h2>
-                <p className="text-indigo-200 text-sm font-bold opacity-80">잠시 후 계약서 PDF가 자동으로 열립니다.<br/>자동으로 열리지 않으면 아래 버튼을 눌러주세요.</p>
+                <h2 className="text-3xl font-black text-white italic tracking-tighter leading-tight">회원가입 신청완료</h2>
+                <p className="text-indigo-100 text-sm font-bold opacity-80">계약서 PDF가 자동으로 열립니다.<br/>열리지 않으면 아래 버튼을 눌러주세요.</p>
               </div>
               
               {createdDocumentId && (
@@ -716,20 +723,20 @@ const RegistrationForm = () => {
                   href={`/api/download?id=${createdDocumentId}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-black hover:shadow-2xl hover:scale-[1.02] transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-5 bg-white/10 text-white rounded-[2rem] font-black hover:bg-white/20 transition-all border border-white/20"
                 >
                   <FileText size={20} />
                   계약서 PDF 다운로드
                 </a>
               )}
 
-              <button onClick={() => window.location.reload()} className="w-full py-5 bg-white text-indigo-900 rounded-[2rem] font-black hover:shadow-2xl hover:scale-[1.02] transition-all">신규 회원가입신청서 작성</button>
+              <button onClick={() => window.location.reload()} className="w-full py-5 bg-white text-indigo-600 rounded-[2rem] font-black hover:shadow-xl transition-all">신규 신청서 작성</button>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <footer className="mt-20 text-[10px] text-zinc-700 font-bold uppercase tracking-[0.5em] opacity-40 italic">Premium Membership Platform // Advanced Digital Signing</footer>
+      <footer className="mt-20 text-[10px] text-sub font-bold uppercase tracking-[0.5em] italic">Premium Membership Platform // Advanced Digital Signing</footer>
     </div>
   );
 };
