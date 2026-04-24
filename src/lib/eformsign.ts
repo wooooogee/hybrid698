@@ -1,105 +1,65 @@
-const EFORMSIGN_API_SERVER = process.env.EFORMSIGN_API_SERVER || 'https://api.eformsign.com';
-const EFORMSIGN_KR_SERVER = 'https://kr-api.eformsign.com';
-const EFORMSIGN_SECRET_KEY = process.env.EFORMSIGN_SECRET_KEY || '';
-const EFORMSIGN_API_KEY = process.env.EFORMSIGN_API_KEY || '';
-export const EFORMSIGN_COMPANY_ID = process.env.EFORMSIGN_COMPANY_ID || '';
-const EFORMSIGN_MEMBER_ID = process.env.EFORMSIGN_MEMBER_ID || '';
-const EFORMSIGN_TEMPLATE_ID_BETTER = process.env.EFORMSIGN_TEMPLATE_ID_BETTER || '';
-const EFORMSIGN_TEMPLATE_ID_Hybrid698 = process.env.EFORMSIGN_TEMPLATE_ID_Hybrid698 || '';
+import crypto from 'crypto';
 
-/**
- * Get Access Token using the specific 'Bearer' Header pattern found in Postman.
- * This pattern is used when the Secret Key is a simple string like 'test'.
- */
-async function getEformsignToken(): Promise<string> {
-    const timestamp = Date.now().toString();
+const EFORMSIGN_API_SERVER = 'https://api.eformsign.com'; // Token Auth requires the main api.eformsign.com domain
+const EFORMSIGN_KR_SERVER = 'https://kr-api.eformsign.com'; // KR Server (Production)
+const EFORMSIGN_MEMBER_ID = 'bugoon@joeunlife.com';
+const EFORMSIGN_SECRET_KEY = 'test';
+const EFORMSIGN_API_KEY = '3eb1cb36-3d57-4683-9b9b-5993feeb7817';
+
+// [복구] 인증 토큰 발급 함수
+export async function getEformsignToken() {
+    const execution_time = Date.now().toString();
     const apiKeyBase64 = Buffer.from(EFORMSIGN_API_KEY).toString('base64');
-
-    const url = `${EFORMSIGN_API_SERVER}/v2.0/api_auth/access_token`;
-
-    // Exact header pattern from the successful Postman screenshot
-    const headers = {
-        'Content-Type': 'application/json',
-        'eformsign_signature': `Bearer ${EFORMSIGN_SECRET_KEY}`,
-        'Authorization': `Bearer ${apiKeyBase64}`
-    };
-
-    const body = {
-        execution_time: timestamp,
-        member_id: EFORMSIGN_MEMBER_ID
-    };
-
-    console.log('--- e-FormSign Ported Auth Request ---');
-    console.log('URL:', url);
-    console.log('Headers:', JSON.stringify(headers, null, 2).replace(apiKeyBase64, '***').replace(EFORMSIGN_SECRET_KEY, '***'));
-    console.log('Body:', JSON.stringify(body, null, 2));
-
-    const response = await fetch(url, {
+    
+    const response = await fetch(`${EFORMSIGN_API_SERVER}/v2.0/api_auth/access_token`, {
         method: 'POST',
-        headers: headers,
-        body: JSON.stringify(body)
+        headers: {
+            'Content-Type': 'application/json',
+            'eformsign_signature': `Bearer ${EFORMSIGN_SECRET_KEY}`,
+            'Authorization': `Bearer ${apiKeyBase64}`
+        },
+        body: JSON.stringify({
+            execution_time: execution_time,
+            member_id: EFORMSIGN_MEMBER_ID
+        })
     });
 
+    const resText = await response.text();
     if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('--- e-FormSign Ported Auth Failure ---');
-        console.error('Status:', response.status);
-        console.error('Response:', errorBody);
-        throw new Error(`e-FormSign Auth Error (Ported): ${errorBody}`);
+        throw new Error(`e-FormSign Auth Failed: ${resText}`);
     }
 
-    const result = await response.json();
+    const result = JSON.parse(resText);
     return result.oauth_token.access_token;
 }
 
-/**
- * Get document detail including field values.
- * Used by webhook handler to retrieve contractor phone after doc_complete.
- */
-export async function getDocumentDetail(documentId: string): Promise<any> {
-    const token = await getEformsignToken();
-    const response = await fetch(`${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    if (!response.ok) {
-        const errBody = await response.text();
-        throw new Error(`문서 조회 실패 (${response.status}): ${errBody}`);
-    }
-
-    return response.json();
-}
+const EFORMSIGN_TEMPLATE_ID_BETTER = 'd9e0306ea32f462194628f8045610816'; // [작업필요] 더좋은크루즈 템플릿 ID
+const EFORMSIGN_TEMPLATE_ID_Hybrid698 = '4e2f0d0f49a24b7caa89fc9c5baf8506';
 
 /**
- * eformsign 자체 열람 알림톡/SMS 발송 (outsides API).
- * 웹훅(doc_complete) 수신 후 백업 경로로 호출.
- * 정상 경로: createEformsignDocument의 recipients(step_type 07)로 이폼사인이 자동 발송.
+ * Send SMS/Notification Talk to a viewer (Fallback method)
  */
-export async function sendViewerNotification(
-    documentId: string,
-    name: string,
-    phone: string
-): Promise<{ success: boolean; error?: string }> {
+export async function sendViewerNotification(documentId: string, name: string, phone: string) {
     try {
         const token = await getEformsignToken();
         const cleanPhone = phone.replace(/\D/g, '');
 
-        // outsides 엔드포인트는 document.recipients 가 아닌 outsides 배열 사용
         const body = {
-            outsides: [
-                {
-                    name: name,
-                    use_sms: true,
-                    sms: {
-                        country_code: '+82',
-                        phone_number: cleanPhone,
-                    },
-                },
-            ],
+            notification: {
+                recipients: [
+                    {
+                        name: name,
+                        phone: cleanPhone,
+                        auth: {
+                            type: "sms"
+                        }
+                    }
+                ]
+            }
         };
 
         const response = await fetch(
-            `${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}/outsides`,
+            `${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}/notifications`,
             {
                 method: 'POST',
                 headers: {
@@ -111,7 +71,7 @@ export async function sendViewerNotification(
         );
 
         const resText = await response.text();
-        console.log('[eformsign] 열람 알림 발송 응답:', response.status, resText);
+        console.log(`[eformsign] Backup notification response: status=${response.status}`, resText);
 
         if (!response.ok) {
             return { success: false, error: `${response.status}: ${resText}` };
@@ -124,7 +84,7 @@ export async function sendViewerNotification(
 }
 
 /**
- * Create Document and Send SMS (Aligned with Postman JSON structure)
+ * Create Document and Send SMS
  */
 export async function createEformsignDocument(data: any) {
     try {
@@ -132,14 +92,12 @@ export async function createEformsignDocument(data: any) {
         const today = new Date().toISOString().split('T')[0];
         const cleanPhone = (data.phone || '').replace(/\D/g, '');
 
-        // Select the appropriate template ID based on the product
         const templateId = data.product === '더좋은크루즈'
             ? EFORMSIGN_TEMPLATE_ID_BETTER
             : EFORMSIGN_TEMPLATE_ID_Hybrid698;
 
         console.log(`Creating e-FormSign document for ${data.product} using template ${templateId}`);
 
-        // Map UI data to the specific Field IDs
         const fields = [
             { id: '상품명', value: data.product },
             { id: '제품명', value: data.productName },
@@ -149,16 +107,19 @@ export async function createEformsignDocument(data: any) {
             { id: '성별', value: data.gender || '남' },
             { id: '주소', value: `${data.address} ${data.addressDetail || ''}`.trim() },
             { id: '휴대폰', value: data.phone },
+            // 헬스케어 대상자 1
             { id: '대상자1_관계', value: data.healthcareTargets?.[0]?.relation || '' },
             { id: '대상자1_성명', value: data.healthcareTargets?.[0]?.name || '' },
             { id: '대상자1_생년월일', value: data.healthcareTargets?.[0]?.birth || '' },
             { id: '대상자1_성별', value: data.healthcareTargets?.[0]?.gender || '' },
             { id: '대상자1_연락처', value: data.healthcareTargets?.[0]?.phone || '' },
+            // 헬스케어 대상자 2
             { id: '대상자2_관계', value: data.healthcareTargets?.[1]?.relation || '' },
             { id: '대상자2_성명', value: data.healthcareTargets?.[1]?.name || '' },
             { id: '대상자2_생년월일', value: data.healthcareTargets?.[1]?.birth || '' },
             { id: '대상자2_성별', value: data.healthcareTargets?.[1]?.gender || '' },
             { id: '대상자2_연락처', value: data.healthcareTargets?.[1]?.phone || '' },
+            // 헬스케어 대상자 3
             { id: '대상자3_관계', value: data.healthcareTargets?.[2]?.relation || '' },
             { id: '대상자3_성명', value: data.healthcareTargets?.[2]?.name || '' },
             { id: '대상자3_생년월일', value: data.healthcareTargets?.[2]?.birth || '' },
@@ -168,7 +129,7 @@ export async function createEformsignDocument(data: any) {
             { id: '카드/은행명', value: data.paymentMethod === 'card' ? (data.paymentInfo?.cardCompany || '') : (data.paymentInfo?.bankName || '') },
             { id: '카드번호/계좌번호', value: data.paymentMethod === 'card' ? (data.paymentInfo?.cardNumber || '') : (data.paymentInfo?.accountNumber || '') },
             { id: '유효기간', value: (data.paymentMethod === 'card' && data.paymentInfo?.cardExpiry) ? data.paymentInfo.cardExpiry : '-' },
-            { id: '이체일', value: `${data.paymentDate || '05'}일` },
+            { id: '이체일', value: `${(data.paymentDate || '05').toString().padStart(2, '0')}일` },
             { id: '상품내용고지', value: data.agreement?.product_notice ? '1' : '' },
             { id: '개인정보수집', value: data.agreement?.privacy ? '1' : '' },
             { id: '제3자제공', value: data.agreement?.third_party ? '1' : '' },
@@ -181,13 +142,13 @@ export async function createEformsignDocument(data: any) {
             { id: '영업자연락처', value: data.salesPhone || '' }
         ];
 
-        // title 생략 → Error 400010 방지 (템플릿 제목 규칙 사용)
         const payload: any = {
             document: {
+                template_id: templateId,
                 comment: "가입 신청이 완료되어 서명된 신청서를 보내드립니다.",
                 recipients: [
                     {
-                        step_type: "07",
+                        step_type: "07", // 템플릿 '열람자 1' (reader 배포 단계)
                         name: data.name,
                         use_sms: true,
                         use_mail: false,
@@ -195,6 +156,10 @@ export async function createEformsignDocument(data: any) {
                         sms: {
                             country_code: "+82",
                             phone_number: cleanPhone
+                        },
+                        auth: {
+                            type: "field",
+                            value: data.name // '계약자' 필드 값과 동일해야 함
                         }
                     }
                 ],
@@ -213,55 +178,45 @@ export async function createEformsignDocument(data: any) {
 
         if (!response.ok) {
             const errorBody = await response.text();
-            console.error('--- e-FormSign API Error State ---');
-            console.error('Status:', response.status);
-            console.error('Response Body:', errorBody);
-            console.error('Sent Payload Fields:', JSON.stringify(fields, null, 2));
-            throw new Error(`e-FormSign Doc Error (${response.status}): ${errorBody}`);
+            throw new Error(`이폼사인 문서 생성 실패: ${errorBody}`);
         }
 
         const result = await response.json();
-        const documentId = result.document?.document_id || result.document_id;
+        const documentId = result.document?.id || result.document?.document_id || result.document_id;
         
         if (!documentId) {
-            throw new Error('이폼사인 문서 생성에 실패했습니다 (document_id 누락)');
+            throw new Error('이폼사인 문서 ID 누락');
         }
 
-        console.log('e-FormSign Document Created Successfully:', documentId);
+        console.log('Document Created Successfully:', documentId);
 
-        // [추가] 문서 생성 후 즉시 다음 단계(열람자)로 전송(제출) 처리
-        const actionResponse = await fetch(`${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}/actions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                action: {
-                    action_type: "submit", // 시작 단계에서 제출 처리하여 다음 단계로 이동
-                    comment: "가입 신청 완료로 인한 자동 제출"
-                }
-            })
-        });
-
-        if (!actionResponse.ok) {
-            const actionError = await actionResponse.text();
-            console.error('e-FormSign Action Execution Failed:', actionError);
-            // 액션 실패는 문서 생성 자체와 별도로 로깅만 하고 성공 리턴 (혹은 업무 규칙에 따라 에러 처리)
-        } else {
-            console.log('e-FormSign Document Progressed to Next Step Successfully');
-        }
-        
         return {
             success: true,
             document_id: documentId,
-            message: '전자 서명이 성공적으로 전송되었습니다.'
+            message: '전자 서명이 성공적으로 전송되었으며, 계약자에게 알림톡이 발송되었습니다.'
         };
     } catch (error: any) {
-        console.error('e-FormSign Integration Error:', error);
-        return {
-            success: false,
-            message: error.message || '이폼사인 연동 실패'
-        };
+        return { success: false, message: error.message };
     }
 }
+
+/**
+ * Get document details (Used in webhook to extract fields after completion)
+ */
+export async function getDocumentDetail(documentId: string) {
+    const token = await getEformsignToken();
+    const response = await fetch(`${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const resText = await response.text();
+        throw new Error(`Failed to get document detail: ${resText}`);
+    }
+
+    return await response.json();
+}
+

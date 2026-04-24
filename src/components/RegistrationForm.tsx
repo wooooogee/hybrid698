@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, CheckCircle2, ArrowRight, ArrowLeft, Loader2, CreditCard, Landmark, ShieldCheck, MapPin, Search, Eraser, PenLine, Package, Calculator, Briefcase, Calendar, Tag } from 'lucide-react';
+import { User, Phone, CheckCircle2, ArrowRight, ArrowLeft, Loader2, CreditCard, Landmark, ShieldCheck, MapPin, Search, Eraser, PenLine, Package, Calculator, Briefcase, Calendar, Tag, FileText } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
 import TermsAgreement from './TermsAgreement';
 import { registerAction } from '@/app/actions';
@@ -77,6 +77,8 @@ const STEPS = [
 const RegistrationForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingMessage, setSubmittingMessage] = useState('');
+  const [createdDocumentId, setCreatedDocumentId] = useState<string | null>(null);
   const sigCanvas = useRef<SignatureCanvas>(null);
   
   const [formData, setFormData] = useState({
@@ -213,9 +215,18 @@ const RegistrationForm = () => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setSubmittingMessage('가입 신청서를 전송하고 있습니다...');
     try {
       const result = await registerAction(formData);
       if (result.success) {
+        setSubmittingMessage('계약서 PDF를 생성하고 있습니다. 잠시만 기다려 주세요...');
+        if (result.documentId) {
+          setCreatedDocumentId(result.documentId);
+          // PDF 생성을 위한 최소한의 시간 확보 (2초 뒤 오픈)
+          setTimeout(() => {
+            window.open(`/api/download?id=${result.documentId}`, '_blank');
+          }, 2000);
+        }
         setCurrentStep(7); // Final step
       } else {
         alert(result.message || '등록 중 오류가 발생했습니다.');
@@ -228,26 +239,8 @@ const RegistrationForm = () => {
     }
   };
 
-  const openPostcode = () => {
-    // @ts-ignore
-    if (!window.daum || !window.daum.Postcode) {
-      alert('주소 검색 서비스를 로드하는 중입니다. 잠시 후 다시 시도해 주세요.');
-      return;
-    }
-    // @ts-ignore
-    new window.daum.Postcode({
-      oncomplete: function(data: any) {
-        updateFormData('address', data.address);
-      }
-    }).open();
-  };
-
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-white flex flex-col items-center py-12 px-4 selection:bg-indigo-500/30">
-      <Script 
-        src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" 
-        strategy="afterInteractive" 
-      />
       
       <div className="w-full max-w-xl space-y-10">
         <AnimatePresence mode="wait">
@@ -325,20 +318,19 @@ const RegistrationForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-400 ml-1">주소</label>
+                  <label className="text-xs font-bold text-zinc-400 ml-1 flex items-center gap-2"><MapPin size={14} /> 주소</label>
                   <div className="flex flex-col gap-3">
                     <div className="relative group">
                       <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" size={18} />
                       <input 
                         type="text" 
-                        placeholder="주소를 검색하려면 여기를 누르세요" 
+                        placeholder="주소를 직접 입력해 주세요" 
                         value={formData.address} 
-                        readOnly 
-                        onClick={openPostcode} 
-                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-white cursor-pointer placeholder:text-zinc-600 text-sm" 
+                        onChange={(e) => updateFormData('address', e.target.value)} 
+                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm" 
                       />
                     </div>
-                    <input type="text" placeholder="상세 주소를 입력하세요" value={formData.addressDetail} onChange={(e) => updateFormData('addressDetail', e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm" />
+                    <input type="text" placeholder="상세 주소를 입력하세요 (동, 호수 등)" value={formData.addressDetail} onChange={(e) => updateFormData('addressDetail', e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm" />
                   </div>
                 </div>
 
@@ -672,8 +664,13 @@ const RegistrationForm = () => {
 
               <div className="flex gap-3 pt-4">
                 <button onClick={handleBack} className="flex-1 py-5 bg-zinc-800 text-zinc-300 rounded-2xl font-bold">이전</button>
-                <button onClick={handleNext} disabled={isSubmitting} className="flex-[2] py-5 bg-white text-black disabled:bg-zinc-800 rounded-2xl font-black flex items-center justify-center shadow-xl">
-                  {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : '최종 신청하기'}
+                <button onClick={handleNext} disabled={isSubmitting} className="flex-[2] py-5 bg-white text-black disabled:bg-zinc-800 rounded-2xl font-black flex flex-col items-center justify-center shadow-xl">
+                  {isSubmitting ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="animate-spin" size={24} />
+                      <span className="text-[10px] font-bold text-zinc-500 animate-pulse">{submittingMessage}</span>
+                    </div>
+                  ) : '최종 신청하기'}
                 </button>
               </div>
             </motion.div>
@@ -690,7 +687,21 @@ const RegistrationForm = () => {
               <div className="inline-flex w-24 h-24 bg-white/20 rounded-[2.5rem] items-center justify-center mb-2 animate-bounce"><CheckCircle2 className="text-white" size={48} /></div>
               <div className="space-y-4">
                 <h2 className="text-3xl font-black text-white italic tracking-tighter leading-tight">회원가입신청서 작성완료</h2>
+                <p className="text-indigo-200 text-sm font-bold opacity-80">잠시 후 계약서 PDF가 자동으로 열립니다.<br/>자동으로 열리지 않으면 아래 버튼을 눌러주세요.</p>
               </div>
+              
+              {createdDocumentId && (
+                <a 
+                  href={`/api/download?id=${createdDocumentId}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-black hover:shadow-2xl hover:scale-[1.02] transition-all"
+                >
+                  <FileText size={20} />
+                  계약서 PDF 다운로드
+                </a>
+              )}
+
               <button onClick={() => window.location.reload()} className="w-full py-5 bg-white text-indigo-900 rounded-[2rem] font-black hover:shadow-2xl hover:scale-[1.02] transition-all">신규 회원가입신청서 작성</button>
             </motion.div>
           )}
