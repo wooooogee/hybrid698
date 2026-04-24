@@ -1,6 +1,7 @@
 'use server';
 
 import { createEformsignDocument } from '@/lib/eformsign';
+import { addRegistrationToSheet } from '@/lib/googleSheets';
 
 export async function registerAction(data: any) {
   try {
@@ -15,7 +16,28 @@ export async function registerAction(data: any) {
       };
     }
 
-    // 열람 알림(카카오톡/SMS)은 이폼사인 템플릿 '열람자 1' 단계에서 자동 발송됨
+    // Google Sheets에 데이터 기록
+    try {
+      const sheetData = {
+        '신청일시': new Date().toLocaleString('ko-KR'),
+        '상품명': data.product || '하이브리드698',
+        '성함': data.name,
+        '연락처': data.phone,
+        '주소': `${data.address} ${data.addressDetail}`,
+        '이메일': data.email,
+        '사원정보': data.employeeInfo,
+        '생년월일': data.residentId,
+        '성별': data.gender === '1' ? '남' : '여',
+        'document_id': eformResult.document_id,
+        '상태': '신청완료'
+      };
+      
+      await addRegistrationToSheet(sheetData);
+      console.log('Google Sheets 기록 완료');
+    } catch (sheetError) {
+      console.error('Google Sheets 기록 중 실패 (프로세스는 계속됨):', sheetError);
+    }
+
     console.log('문서 생성 완료, document_id:', eformResult.document_id);
     console.log('--- Register Action Completed ---');
 
