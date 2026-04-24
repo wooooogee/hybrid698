@@ -32,8 +32,8 @@ export async function registerAction(data: any) {
         '상태': '신청완료'
       };
       
-      await addRegistrationToSheet(sheetData);
-      console.log('Google Sheets 기록 완료');
+      await addRegistrationToSheet(sheetData, '하이브리드698');
+      console.log('Google Sheets 기록 완료 (하이브리드698 시트)');
     } catch (sheetError) {
       console.error('Google Sheets 기록 중 실패 (프로세스는 계속됨):', sheetError);
     }

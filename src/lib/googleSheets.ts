@@ -89,7 +89,7 @@ export async function verifyEmployee(searchTerm: string) {
   }
 }
 
-export async function addRegistrationToSheet(data: any) {
+export async function addRegistrationToSheet(data: any, sheetTitle: string = '신청현황') {
   if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
     console.warn('Google Sheets credentials are not set.');
     return { success: false, error: 'credentials_missing' };
@@ -105,9 +105,9 @@ export async function addRegistrationToSheet(data: any) {
     const doc = new GoogleSpreadsheet(SPREADSHEET_ID, serviceAccountAuth);
     await doc.loadInfo();
 
-    let sheet = doc.sheetsByTitle['신청현황'];
+    let sheet = doc.sheetsByTitle[sheetTitle];
     if (!sheet) {
-      sheet = await doc.addSheet({ title: '신청현황', headerValues: Object.keys(data) });
+      sheet = await doc.addSheet({ title: sheetTitle, headerValues: Object.keys(data) });
     }
 
     try {
