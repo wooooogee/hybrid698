@@ -27,6 +27,9 @@ export default function RootLayout({
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" async />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

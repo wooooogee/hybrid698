@@ -141,6 +141,25 @@ const RegistrationForm = () => {
     updateHealthcareTarget(index, 'phone', formData.phone);
   };
 
+  const handleAddressSearch = () => {
+    if (typeof window !== 'undefined' && (window as any).daum) {
+      new (window as any).daum.Postcode({
+        oncomplete: function(data: any) {
+          let fullAddr = data.address;
+          let extraAddr = '';
+
+          if (data.addressType === 'R') {
+            if (data.bname !== '') extraAddr += data.bname;
+            if (data.buildingName !== '') extraAddr += (extraAddr !== '' ? `, ${data.buildingName}` : data.buildingName);
+            fullAddr += (extraAddr !== '' ? ` (${extraAddr})` : '');
+          }
+
+          updateFormData('address', fullAddr);
+        }
+      }).open();
+    }
+  };
+
   const copyPreviousHealthcareTarget = (index: number) => {
     if (index === 0) return;
     const prev = formData.healthcareTargets[index - 1];
@@ -241,6 +260,7 @@ const RegistrationForm = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-white flex flex-col items-center py-12 px-4 selection:bg-indigo-500/30">
+      <Script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" strategy="beforeInteractive" />
       
       <div className="w-full max-w-xl space-y-10">
         <AnimatePresence mode="wait">
@@ -324,10 +344,11 @@ const RegistrationForm = () => {
                       <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" size={18} />
                       <input 
                         type="text" 
-                        placeholder="주소를 직접 입력해 주세요" 
+                        placeholder="터치하여 주소를 검색하세요" 
                         value={formData.address} 
-                        onChange={(e) => updateFormData('address', e.target.value)} 
-                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm" 
+                        onClick={handleAddressSearch}
+                        readOnly
+                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 pl-14 pr-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm cursor-pointer" 
                       />
                     </div>
                     <input type="text" placeholder="상세 주소를 입력하세요 (동, 호수 등)" value={formData.addressDetail} onChange={(e) => updateFormData('addressDetail', e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none text-white placeholder:text-zinc-700 text-sm" />
