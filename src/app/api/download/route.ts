@@ -15,32 +15,62 @@ export async function GET(request: NextRequest) {
 
     let response: Response | null = null;
     let attempts = 0;
-    const maxAttempts = 3;
+    // PDF 생성에 시간이 걸릴 수 있으므로 404/400 발생 시 최대 7번 재시도 (약 20초)
+    const maxAttempts = 7;
+    const endpoints = [
+      `${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}/download_files?file_type=document`,
+      `${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}/pdf`
+    ];
 
-    // PDF 생성에 시간이 걸릴 수 있으므로 404 발생 시 최대 3번 재시도
     while (attempts < maxAttempts) {
-      // [검증 완료] v2.0에서 문서 조회를 위한 공식 엔드포인트는 download_files (복수형)입니다.
-      response = await fetch(`${EFORMSIGN_KR_SERVER}/v2.0/api/documents/${documentId}/download_files?file_type=document`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
+      console.log(`[eformsign] Download Attempt ${attempts + 1} for document ${documentId}...`);
+      
+      // Try endpoints sequentially
+      for (const endpoint of endpoints) {
+        try {
+          response = await fetch(endpoint, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (response.ok) {
+            console.log(`[eformsign] Download success on attempt ${attempts + 1} using ${endpoint.includes('download_files') ? 'download_files' : 'pdf'} endpoint`);
+            break;
+          }
+        } catch (fetchErr) {
+          console.error(`[eformsign] Fetch error on endpoint ${endpoint}:`, fetchErr);
         }
-      });
+      }
 
-      if (response.ok) break;
+      if (response && response.ok) break;
 
-      const errText = await response.text();
-      console.log(`[eformsign] PDF Download Attempt ${attempts + 1}: Status ${response.status} - ${errText}`);
+      const errText = response ? await response.text() : 'No response';
+      console.log(`[eformsign] PDF Download Attempt ${attempts + 1} failed: Status ${response?.status} - ${errText}`);
 
-      if (response.status === 404) {
+      let shouldRetry = false;
+      if (!response || response.status === 404 || response.status === 423) {
+        shouldRetry = true;
+      } else if (response.status === 400) {
+        try {
+          const errObj = JSON.parse(errText);
+          // 2020001: PDF is being generated
+          if (errObj.code === '2020001') {
+            shouldRetry = true;
+          }
+        } catch (e) {}
+      }
+
+      if (shouldRetry) {
         attempts++;
         if (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          const delay = 3000;
+          console.log(`[eformsign] Waiting ${delay/1000} seconds before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
       }
       
-      return new NextResponse(`Error downloading PDF: ${response.status} (${errText})`, { status: response.status });
+      return new NextResponse(`Error downloading PDF: ${response?.status} (${errText})`, { status: response?.status || 500 });
     }
 
     if (!response || !response.ok) {
@@ -54,7 +84,8 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="contract_${documentId}.pdf"`
+        'Content-Disposition': 'inline; filename=contract.pdf',
+        'X-Content-Type-Options': 'nosniff',
       }
     });
   } catch (error: any) {

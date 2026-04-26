@@ -229,6 +229,16 @@ const RegistrationForm = () => {
         }
       }
     }
+    if (currentStep === 4) { // Terms step
+      const missingRequired = DEFAULT_TERMS
+        .filter(t => t.required)
+        .some(t => !formData.agreement[t.id as keyof typeof formData.agreement]);
+      
+      if (missingRequired) {
+        alert('필수 약관에 모두 동의해 주세요.');
+        return;
+      }
+    }
     if (currentStep === 5) { // Signature step
       if (!saveSignature()) return;
     }
@@ -563,29 +573,10 @@ const RegistrationForm = () => {
               <div className="space-y-4">
                 {formData.paymentMethod === 'card' ? (
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><CreditCard size={14} /> 카드사</label>
-                      <input type="text" placeholder="예: 현대카드" value={formData.paymentInfo.cardCompany} onChange={(e) => updatePaymentInfo('cardCompany', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none" />
-                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-sub ml-1">카드번호</label>
-                        <input
-                          type="text"
-                          placeholder="0000-0000-0000-0000"
-                          value={formData.paymentInfo.cardNumber}
-                          onChange={(e) => {
-                            let val = e.target.value.replace(/[^0-9]/g, '');
-                            if (val.length > 16) val = val.substring(0, 16);
-                            let formatted = '';
-                            for (let i = 0; i < val.length; i++) {
-                              if (i > 0 && i % 4 === 0) formatted += '-';
-                              formatted += val[i];
-                            }
-                            updatePaymentInfo('cardNumber', formatted);
-                          }}
-                          className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-4 focus:border-indigo-500 outline-none font-mono text-sm sm:text-base tracking-tighter sm:tracking-normal"
-                        />
+                        <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><CreditCard size={14} /> 카드사</label>
+                        <input type="text" placeholder="예: 현대카드" value={formData.paymentInfo.cardCompany} onChange={(e) => updatePaymentInfo('cardCompany', e.target.value)} className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Calendar size={14} /> 유효기간</label>
@@ -602,6 +593,25 @@ const RegistrationForm = () => {
                           className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none"
                         />
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-sub ml-1">카드번호</label>
+                      <input
+                        type="text"
+                        placeholder="0000-0000-0000-0000"
+                        value={formData.paymentInfo.cardNumber}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/[^0-9]/g, '');
+                          if (val.length > 16) val = val.substring(0, 16);
+                          let formatted = '';
+                          for (let i = 0; i < val.length; i++) {
+                            if (i > 0 && i % 4 === 0) formatted += '-';
+                            formatted += val[i];
+                          }
+                          updatePaymentInfo('cardNumber', formatted);
+                        }}
+                        className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none font-mono text-sm sm:text-base tracking-tighter sm:tracking-normal"
+                      />
                     </div>
                   </div>
                 ) : (

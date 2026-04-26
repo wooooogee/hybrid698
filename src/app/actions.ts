@@ -20,16 +20,26 @@ export async function registerAction(data: any) {
     try {
       const sheetData = {
         '신청일시': new Date().toLocaleString('ko-KR'),
-        '상품명': data.product || '하이브리드698',
-        '성함': data.name,
+        '상품명': data.product || '더좋은하이브리드698',
+        '계약자': data.name,
         '연락처': data.phone,
-        '주소': `${data.address} ${data.addressDetail}`,
-        '이메일': data.email,
-        '사원정보': data.employeeInfo,
-        '생년월일': data.residentId,
-        '성별': data.gender === '1' ? '남' : '여',
+        '주소': `${data.address} ${data.addressDetail || ''}`.trim(),
+        '제품명': data.productName || '',
+        '구좌수': data.productCount,
+        '결제정보(카드/cms)': data.paymentMethod === 'card' ? '카드' : 'CMS',
+        '카드사/은행명': data.paymentMethod === 'card' ? (data.paymentInfo?.cardCompany || '') : (data.paymentInfo?.bankName || ''),
+        '카드번호/계좌번호': data.paymentMethod === 'card' ? (data.paymentInfo?.cardNumber || '') : (data.paymentInfo?.accountNumber || ''),
+        '유효기간': (data.paymentMethod === 'card' && data.paymentInfo?.cardExpiry) ? data.paymentInfo.cardExpiry : '',
+        '결제일': data.paymentDate || '05',
+        '영업자소속': data.salesAffiliation || '',
+        '영업자': data.salesName || '',
+        '영업자연락처': data.salesPhone || '',
         'document_id': eformResult.document_id,
-        '상태': '신청완료'
+        '상태': '신청완료',
+        '대상자1': data.healthcareTargets?.[0]?.name ? `${data.healthcareTargets[0].name} ${data.healthcareTargets[0].birth || ''} ${data.healthcareTargets[0].phone || ''}`.trim() : '',
+        '대상자2': data.healthcareTargets?.[1]?.name ? `${data.healthcareTargets[1].name} ${data.healthcareTargets[1].birth || ''} ${data.healthcareTargets[1].phone || ''}`.trim() : '',
+        '대상자3': data.healthcareTargets?.[2]?.name ? `${data.healthcareTargets[2].name} ${data.healthcareTargets[2].birth || ''} ${data.healthcareTargets[2].phone || ''}`.trim() : '',
+        '대상자4': data.healthcareTargets?.[3]?.name ? `${data.healthcareTargets[3].name} ${data.healthcareTargets[3].birth || ''} ${data.healthcareTargets[3].phone || ''}`.trim() : '',
       };
       
       await addRegistrationToSheet(sheetData, '하이브리드698');
