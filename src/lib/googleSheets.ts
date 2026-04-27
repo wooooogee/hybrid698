@@ -9,7 +9,7 @@ const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY
 
 export async function verifyEmployee(searchTerm: string) {
   if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
-    console.warn('Google Sheets credentials are not set.');
+    console.warn('[Google Sheets] verifyEmployee: 자격 증명이 설정되지 않았습니다. 환경 변수를 확인하세요.');
     return { success: false, error: 'credentials_missing' };
   }
 
@@ -91,9 +91,11 @@ export async function verifyEmployee(searchTerm: string) {
 
 export async function addRegistrationToSheet(data: any, sheetTitle: string = '신청현황') {
   if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
-    console.warn('Google Sheets credentials are not set.');
+    console.warn('[Google Sheets] addRegistrationToSheet: 자격 증명이 설정되지 않았습니다. 환경 변수를 확인하세요.');
     return { success: false, error: 'credentials_missing' };
   }
+
+  console.log(`[Google Sheets] 데이터 기록 시도 중... (시트: ${sheetTitle})`);
 
   try {
     const serviceAccountAuth = new JWT({
@@ -104,6 +106,7 @@ export async function addRegistrationToSheet(data: any, sheetTitle: string = '�
 
     const doc = new GoogleSpreadsheet(SPREADSHEET_ID, serviceAccountAuth);
     await doc.loadInfo();
+    console.log(`[Google Sheets] 문서 로드 성공: ${doc.title}`);
 
     let sheet = doc.sheetsByTitle[sheetTitle];
     if (!sheet) {

@@ -42,10 +42,16 @@ export async function registerAction(data: any) {
         '대상자4': data.healthcareTargets?.[3]?.name ? `${data.healthcareTargets[3].name} ${data.healthcareTargets[3].birth || ''} ${data.healthcareTargets[3].phone || ''}`.trim() : '',
       };
       
-      await addRegistrationToSheet(sheetData, '하이브리드698');
-      console.log('Google Sheets 기록 완료 (하이브리드698 시트)');
+      const sheetResult = await addRegistrationToSheet(sheetData, '하이브리드698');
+      
+      if (sheetResult.success) {
+        console.log(`Google Sheets 기록 완료 (하이브리드698 시트), 행 번호: ${sheetResult.rowNumber}`);
+      } else {
+        console.error('Google Sheets 기록 실패:', sheetResult.error);
+        // 필요 시 여기서 추가적인 처리를 할 수 있습니다.
+      }
     } catch (sheetError) {
-      console.error('Google Sheets 기록 중 실패 (프로세스는 계속됨):', sheetError);
+      console.error('Google Sheets 기록 중 예외 발생:', sheetError);
     }
 
     console.log('문서 생성 완료, document_id:', eformResult.document_id);
