@@ -427,23 +427,14 @@ const RegistrationForm = () => {
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-sub ml-1 flex items-center gap-2"><Tag size={14} /> 제품명</label>
-                    <select
+                    <input
+                      type="text"
+                      lang="ko"
+                      placeholder="제품명을 입력해주세요"
                       value={formData.productName}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        updateFormData('productName', val);
-                        if (val.includes('1구좌')) {
-                          updateFormData('productCount', '1');
-                        } else if (val.includes('2구좌')) {
-                          updateFormData('productCount', '2');
-                        }
-                      }}
+                      onChange={(e) => updateFormData('productName', e.target.value)}
                       className="w-full bg-theme border border-theme rounded-2xl py-4.5 px-6 focus:border-indigo-500 outline-none font-bold"
-                    >
-                      <option value="">제품을 선택해주세요</option>
-                      <option value="1구좌 [오토모] 퓨리원 3in1 세이프 UV 공기청정기(HTC-2000A)">1구좌 [오토모] 퓨리원 3in1 세이프 UV 공기청정기(HTC-2000A)</option>
-                      <option value="2구좌 [샤크] 에보 파워 시스템 NEO 플러스 청소기(LC351KRBK)">2구좌 [샤크] 에보 파워 시스템 NEO 플러스 청소기(LC351KRBK)</option>
-                    </select>
+                    />
                   </div>
                 </div>
 
