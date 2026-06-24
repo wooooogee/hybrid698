@@ -58,7 +58,14 @@ export async function registerAction(data: any) {
         '대상자4': formatHealthcareTarget(data.healthcareTargets?.[3]),
       };
       
-      const sheetName = '굿라이프헬스케어';
+      let sheetName = '굿라이프헬스케어';
+      if (data.product === '더좋은프리미엄540') {
+        sheetName = '프리미엄540';
+      } else if (data.product === '더좋은하이브리드698') {
+        sheetName = '하이브리드698';
+      } else if (data.product === '더좋은크루즈') {
+        sheetName = '크루즈';
+      }
       const sheetResult = await addRegistrationToSheet(sheetData, sheetName);
       
       if (sheetResult.success) {
