@@ -33,7 +33,7 @@ async function test() {
 
     // Try adding a test row
     const testData = {
-      Timestamp: new Date().toLocaleString('ko-KR'),
+      Timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
       Name: 'TEST_USER',
       Status: 'TEST_SUCCESS'
     };

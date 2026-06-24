@@ -10,7 +10,7 @@ const EFORMSIGN_API_KEY = '3eb1cb36-3d57-4683-9b9b-5993feeb7817';
 export async function getEformsignToken() {
     const execution_time = Date.now().toString();
     const apiKeyBase64 = Buffer.from(EFORMSIGN_API_KEY).toString('base64');
-    
+
     const response = await fetch(`${EFORMSIGN_API_SERVER}/v2.0/api_auth/access_token`, {
         method: 'POST',
         headers: {
@@ -184,7 +184,7 @@ export async function createEformsignDocument(data: any) {
 
         const result = await response.json();
         const documentId = result.document?.id || result.document?.document_id || result.document_id;
-        
+
         if (!documentId) {
             throw new Error('이폼사인 문서 ID 누락');
         }

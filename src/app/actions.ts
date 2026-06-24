@@ -35,7 +35,7 @@ export async function registerAction(data: any) {
       };
 
       const sheetData = {
-        '신청일시': new Date().toLocaleString('ko-KR'),
+        '신청일시': new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
         '상품명': data.product || '더좋은하이브리드698',
         '계약자': data.name,
         '연락처': data.phone,
